@@ -3,4 +3,3 @@ USER airflow
 
 #instalando biblioteca
 RUN pip install fastparquet
-
