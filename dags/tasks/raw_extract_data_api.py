@@ -1,10 +1,13 @@
 import requests
 import json
 import pandas as pd
+from airflow.hooks.base_hook import BaseHook
 
 # Obter o token do mapbiomas
 def obter_token():
-    url = "https://plataforma.alerta.mapbiomas.org/api/v2/graphql"
+    connection = BaseHook.get_connection('mapbiomas_login')
+
+    url = connection.host
     auth_query = """
     mutation signIn($email: String!, $password: String!) {
       signIn(email: $email, password: $password) {
@@ -13,8 +16,8 @@ def obter_token():
     }
     """
     variables_signin = {
-        "email": "fabiana.beda@gmail.com",
-        "password": "IFPB&dados2024"
+        "email": connection.login,
+        "password": connection.password
     }
     headers_auth = {
         "Content-Type": "application/json",

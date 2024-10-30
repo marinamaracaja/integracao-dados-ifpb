@@ -6,3 +6,7 @@ Repositório destinado ao projeto que investiga a correlação entre dados de qu
 - Apache Airflow: Orquestrador de pipelines que possibilitou o gerenciamento e a automatização do fluxo de tarefas criado.
 - Docker: Ferramenta gerenciadora de containers que permitiu a criação de um ambiente escalável onde o airflow foi executado.
 - MiniIO: No contexto do projeto, o MinIO foi integrado ao fluxo de trabalho para permitir o armazenamento de arquivos e dados processados de maneira escalável e acessível, facilitando o gerenciamento e a recuperação de informações durante as tarefas do Airflow.
+
+## Desenho do fluxo da DAG no airflow:
+
+![fluxo da dag](image.png)
