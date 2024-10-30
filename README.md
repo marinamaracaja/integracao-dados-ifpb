@@ -57,7 +57,7 @@ Repositório destinado ao projeto que investiga a correlação entre dados de qu
 Essa arquitetura garante um ciclo controlado de evolução dos dados, desde a ingestão até o consumo final, promovendo governança, escalabilidade e flexibilidade no uso de dados.
 
 ### Integrantes
-Fabiana Macêdo
-Felipe Targino
-Marina Maracajá
-Wallennon Germano
+- Fabiana Macêdo
+- Felipe Targino
+- Marina Maracajá
+- Wallennon Germano
