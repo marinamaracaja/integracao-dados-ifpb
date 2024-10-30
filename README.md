@@ -27,7 +27,7 @@ Repositório destinado ao projeto que investiga a correlação entre dados de qu
 - Acompanhar logs de execução
 
 
-## Estrutura dos datalake:
+## Estrutura do datalake:
 Camadas de dados criadas como buckets no MinIO:
 ![connections](images/buckets_minio.png)
 
@@ -52,7 +52,7 @@ Camadas de dados criadas como buckets no MinIO:
    - Pode conter agregações, sumarizações e dados transformados para atender necessidades específicas dos usuários ou sistemas.
    - Também pode ser chamada de **Camada de Serviço** ou **Camada de Apresentação**.
 
-Exemplo de arquivo json salvo no bucket da camada RAW:
+Exemplo de arquivo json salvo na camada RAW:
 ![connections](images/json_minio.png)
 
 ### Fluxo de Dados
