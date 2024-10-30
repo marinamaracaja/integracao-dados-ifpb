@@ -28,6 +28,9 @@ Repositório destinado ao projeto que investiga a correlação entre dados de qu
 
 
 ## Estrutura dos datalake:
+Camadas de dados criadas como buckets no MinIO:
+![connections](images/buckets_minio.png)
+
 1. **Raw (Camada Bruta)**:
    - Armazena os dados no formato original, sem qualquer tipo de transformação.
    - Pode conter dados estruturados, semiestruturados e não estruturados.
@@ -48,6 +51,9 @@ Repositório destinado ao projeto que investiga a correlação entre dados de qu
    - Focada no consumo final dos dados por aplicações, relatórios ou análises avançadas.
    - Pode conter agregações, sumarizações e dados transformados para atender necessidades específicas dos usuários ou sistemas.
    - Também pode ser chamada de **Camada de Serviço** ou **Camada de Apresentação**.
+
+Exemplo de arquivo json salvo no bucket da camada RAW:
+![connections](images/json_minio.png)
 
 ### Fluxo de Dados
 - Os dados são inicialmente armazenados na **Raw**, depois passam por transformações na **Staging**, onde são limpos e estruturados.
