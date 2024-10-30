@@ -1,5 +1,9 @@
-FROM apache/airflow:2.3.3
+FROM apache/airflow:2.10.2
+
+USER root
+RUN apt-get update
+
 USER airflow
 
-#instalando biblioteca
-RUN pip install fastparquet
+RUN pip install -U pip
+RUN pip install --no-cache-dir minio
