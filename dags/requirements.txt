@@ -1,0 +1,5 @@
+apache-airflow==2.10.2
+pendulum
+pandas
+minio
+datetime

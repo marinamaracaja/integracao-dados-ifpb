@@ -2,11 +2,12 @@ import requests
 import json
 import pandas as pd
 from airflow.hooks.base_hook import BaseHook
+from minio import Minio
+from io import BytesIO
 
 # Obter o token do mapbiomas
 def obter_token():
     connection = BaseHook.get_connection('mapbiomas_login')
-
     url = connection.host
     auth_query = """
     mutation signIn($email: String!, $password: String!) {
@@ -42,17 +43,17 @@ except Exception as e:
 
 # Extrair json da API
 def raw_extract_data_api():
-    from minio import Minio
-    from io import BytesIO
-
     # Configurações do MinIO no Docker
-    minio_client = Minio(
-        "localhost:9000",
-        access_key="test",
-        secret_key="test12334567",
-        secure=False
-    )
-
+    minio_connection = BaseHook.get_connection('minio')
+    host = minio_connection.host + ':' + str(minio_connection.port)
+    client = Minio(host, secure=False, access_key=minio_connection.login, secret_key=minio_connection.password)
+    BUCKET = "raw"
+    buckets = client.list_buckets()
+    buckets = [i.name for i in buckets]
+    if BUCKET not in buckets:
+        client.make_bucket(BUCKET)
+    
+    # Acessar API
     token = obter_token()
     url = "https://plataforma.alerta.mapbiomas.org/api/v2/graphql"
     headers_with_token = {
@@ -106,24 +107,21 @@ def raw_extract_data_api():
             print("Erro na resposta da API:")
             print(json.dumps(data['errors'], indent=2))
         else:
-            print("Dados retornados pela API:")
-            # print(json.dumps(data, indent=2))
-            bucket_name = "RAW"
+            print("Dados retornados com sucesso pela API")
+            bucket_name = "raw"
             file_name = "data_raw.json"
-            json_bytes = json.dumps(data, indent=4).encode("utf-8")
-
-            if not minio_client.bucket_exists(bucket_name):
-                minio_client.make_bucket(bucket_name)
+            json_object = json.dumps(data, indent=2).encode("utf-8")
             
-            # Enviando o JSON bruto para o MinIO
-            minio_client.put_object(
-                bucket_name,
-                file_name,
-                data=BytesIO(json_bytes),
-                length=len(json_bytes),
-                content_type="application/json"
+            # Salvar dados na API
+            client.put_object(
+              bucket_name,
+              file_name,
+              data=BytesIO(json_object),
+              length=len(json_object),
+              content_type="application/json"
             )
-            print(f"Arquivo '{file_name}' salvo no bucket '{bucket_name}' com sucesso.")
+
+            print(f"Arquivo '{file_name}' salvo no bucket '{bucket_name}' do MinIO com sucesso.")
     else:
         print(f"Erro ao obter os dados: {response_data.status_code}")
         print(response_data.text)
