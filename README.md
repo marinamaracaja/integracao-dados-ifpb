@@ -9,7 +9,7 @@ Repositório destinado ao projeto que investiga a correlação entre dados de qu
 
 ## Desenho do fluxo da DAG no airflow:
 
-![fluxo da dag](images\fluxo_dag.png)
+![fluxo da dag](images/fluxo_dag.png)
 
 ## Como reproduzir esse projeto
 - Faça gitclone do projeto: git clone https://github.com/marinamaracaja/integracao-dados-ifpb.git
@@ -20,8 +20,8 @@ Repositório destinado ao projeto que investiga a correlação entre dados de qu
 - Uma vez criado das próximas vezes só precisa do comando: docker-compose up -d
 - Acessar: http://localhost:8080/home
 - Criar connections no airflow "minio" e "mapbiomas_login":
-![connections](images\connections_airflow.png)
-![connections](images\connections_airflow_minio.png)
+![connections](images/connections_airflow.png)
+![connections](images/connections_airflow_minio.png)
 
 - Ligar dag "dag_qualidade_ar"
 - Acompanhar logs de execução
@@ -55,3 +55,9 @@ Repositório destinado ao projeto que investiga a correlação entre dados de qu
 - Finalmente, os dados podem ser carregados na **Application**, que apresenta os dados prontos para consumo em dashboards, APIs, ou sistemas de machine learning.
 
 Essa arquitetura garante um ciclo controlado de evolução dos dados, desde a ingestão até o consumo final, promovendo governança, escalabilidade e flexibilidade no uso de dados.
+
+### Integrantes
+Fabiana Macêdo
+Felipe Targino
+Marina Maracajá
+Wallennon Germano
