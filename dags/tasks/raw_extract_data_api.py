@@ -38,14 +38,19 @@ def obter_token():
 # Função para salvar dados como JSON no MinIO
 def salvar_dados_minio(client, bucket_name, file_name, data):
     json_object = json.dumps(data, indent=2).encode("utf-8")
-    client.put_object(
-        bucket_name,
-        file_name,
-        data=BytesIO(json_object),
-        length=len(json_object),
-        content_type="application/json"
-    )
-    print(f"Arquivo '{file_name}' salvo no bucket '{bucket_name}' do MinIO com sucesso.")
+    print(f"Salvando arquivo {file_name} no MinIO...")  # Log antes de salvar
+    with BytesIO(json_object) as byte_data:
+        try:
+            client.put_object(
+                bucket_name,
+                file_name,
+                data=byte_data,
+                length=len(json_object),
+                content_type="application/json"
+            )
+            print(f"Arquivo {file_name} salvo com sucesso.")  # Log após salvar
+        except Exception as e:
+            print(f"Erro ao salvar o arquivo {file_name}: {e}")
 
 # Função para extrair e processar dados da API Mapbiomas e salvar DataFrames no MinIO
 def raw_extract_mapbiomas_api():
@@ -104,6 +109,7 @@ def raw_extract_mapbiomas_api():
     
     if response_data.status_code == 200:
         data = response_data.json()
+        print(f"Dados da API Mapbiomas: {json.dumps(data, indent=2)[:500]}")  # Exibe os primeiros 500 caracteres
         if 'errors' in data:
             print("Erro na resposta da API Mapbiomas:")
             print(json.dumps(data['errors'], indent=2))
@@ -145,6 +151,7 @@ def raw_extract_aqicn_api(cidade):
 
     if response_aqicn.status_code == 200:
         data = response_aqicn.json()
+        print(f"Dados da API AQICN: {json.dumps(data, indent=2)[:500]}")  # Exibe os primeiros 500 caracteres
         if data['status'] == 'ok':
             print(f"Dados de qualidade do ar para {cidade} obtidos com sucesso.")
             salvar_dados_minio(client, BUCKET, f"{cidade}_aqicn_data_raw.json", data)
@@ -174,6 +181,7 @@ def raw_extract_aqicn_api(cidade):
     else:
         print(f"Erro ao obter dados da API AQICN: {response_aqicn.status_code}")
         print(response_aqicn.text)
+    
 
 # Executar funções de extração e processamento
 try:

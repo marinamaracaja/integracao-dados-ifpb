@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
+from airflow.operators.python import PythonOperator
 import os
 
 from tasks.raw_extract_data_api import raw_extract_mapbiomas_api, raw_extract_aqicn_api
@@ -31,14 +31,15 @@ with DAG(
     # Operador para extrair dados da API AQICN
     extract_aqicn_api = PythonOperator(
         task_id='extract_aqicn_api',
-        python_callable=lambda: raw_extract_aqicn_api("vitoria"),  # Modifique a cidade conforme necessário
+        python_callable=lambda: raw_extract_aqicn_api(
+            "vitoria"),  # Modifique a cidade conforme necessário
         execution_timeout=timedelta(minutes=5)
     )
 
     # Operador para transformar dados
     transform_data = PythonOperator(
         task_id='transform_data',
-        python_callable=stg_transform_data
+        python_callable=stg_transform_data,
     )
 
     # Operador para refinar dados
