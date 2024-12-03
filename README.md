@@ -1,6 +1,6 @@
 # integracao-dados-ifpb
 
-Repositório destinado ao projeto que investiga a correlação entre dados de qualidade do ar do AQICN e do MapBiomas para estudo de caso na disciplina de Inte# No code was selected for improvement.gração de Dados do Mestrado PPGTI - IFPB
+Repositório destinado ao projeto que investiga a correlação entre dados de qualidade do ar do AQICN e do MapBiomas para estudo de caso na disciplina de Integração de Dados do Mestrado PPGTI - IFPB
 
 ## Ferramentas utilizadas:
 

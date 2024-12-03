@@ -1,12 +1,9 @@
-import requests
-import json
-import pandas as pd
-from airflow.hooks.base import BaseHook
-from minio import Minio
-from io import BytesIO
-
 # Função para obter o token do Mapbiomas
 def obter_token():
+    import requests
+    import json
+    from airflow.hooks.base import BaseHook
+
     connection = BaseHook.get_connection('mapbiomas_login')
     url = connection.host
     auth_query = """
@@ -37,6 +34,10 @@ def obter_token():
 
 # Função para salvar dados como JSON no MinIO
 def salvar_dados_minio(client, bucket_name, file_name, data):
+    import json
+    from minio import Minio
+    from io import BytesIO
+
     json_object = json.dumps(data, indent=2).encode("utf-8")
     print(f"Salvando arquivo {file_name} no MinIO...")  # Log antes de salvar
     with BytesIO(json_object) as byte_data:
@@ -54,7 +55,14 @@ def salvar_dados_minio(client, bucket_name, file_name, data):
 
 # Função para extrair e processar dados da API Mapbiomas e salvar DataFrames no MinIO
 def raw_extract_mapbiomas_api():
+    import requests
+    import json
+    import pandas as pd
+    from airflow.hooks.base import BaseHook
+    from minio import Minio
+
     minio_connection = BaseHook.get_connection('minio')
+    mapbiomas_connection = BaseHook.get_connection('mapbiomas_login')
     host = minio_connection.host + ':' + str(minio_connection.port)
     client = Minio(host, secure=False, access_key=minio_connection.login, secret_key=minio_connection.password)
     BUCKET = "raw"
@@ -63,7 +71,7 @@ def raw_extract_mapbiomas_api():
     
     # Obter dados da API Mapbiomas
     token = obter_token()
-    url = "https://plataforma.alerta.mapbiomas.org/api/v2/graphql"
+    url = mapbiomas_connection.host
     headers_with_token = {
         "Content-Type": "application/json",
         "Accept": "application/json",
@@ -136,13 +144,29 @@ def raw_extract_mapbiomas_api():
         print(response_data.text)
 
 # Função para consultar a API AQICN e processar dados de qualidade do ar
-def raw_extract_aqicn_api(cidade):
+def raw_extract_aqicn_api():
+    import requests
+    import json
+    import pandas as pd
+    from airflow.hooks.base import BaseHook
+    from minio import Minio
+    
+    cidade = "vitoria"
     minio_connection = BaseHook.get_connection('minio')
     host = minio_connection.host + ':' + str(minio_connection.port)
     client = Minio(host, secure=False, access_key=minio_connection.login, secret_key=minio_connection.password)
     BUCKET = "raw"
+    # Verifica se o bucket existe
     if not client.bucket_exists(BUCKET):
         client.make_bucket(BUCKET)
+        print(f"Bucket '{BUCKET}' criado com sucesso.")
+    else:
+        print(f"Bucket '{BUCKET}' já existe. Limpando conteúdo...")
+        # Lista os objetos no bucket e exclui todos
+        objects = client.list_objects(BUCKET, recursive=True)
+        for obj in objects:
+            client.remove_object(BUCKET, obj.object_name)
+        print(f"Todo conteúdo do bucket '{BUCKET}' foi deletado.")
 
     token_aqicn = "3d2600ab777bcf8d09fbb8f87dd6bcb27713544d"
     # token_aqicn = BaseHook.get_connection('aqicn_api').password
@@ -155,7 +179,7 @@ def raw_extract_aqicn_api(cidade):
         if data['status'] == 'ok':
             print(f"Dados de qualidade do ar para {cidade} obtidos com sucesso.")
             salvar_dados_minio(client, BUCKET, f"{cidade}_aqicn_data_raw.json", data)
-            
+
             # Processar previsões de qualidade do ar
             forecast_data = data['data']['forecast']['daily']
             forecast_dfs = []
@@ -181,11 +205,11 @@ def raw_extract_aqicn_api(cidade):
     else:
         print(f"Erro ao obter dados da API AQICN: {response_aqicn.status_code}")
         print(response_aqicn.text)
-    
 
-# Executar funções de extração e processamento
-try:
-    raw_extract_mapbiomas_api()
-    raw_extract_aqicn_api("vitoria")
-except Exception as e:
-    print(e)
+
+# # Executar funções de extração e processamento
+# try:
+#     raw_extract_mapbiomas_api()
+#     raw_extract_aqicn_api()
+# except Exception as e:
+#     print(e)

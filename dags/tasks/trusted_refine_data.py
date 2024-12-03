@@ -1,10 +1,9 @@
-from minio import Minio
-import pandas as pd
-from io import BytesIO
-from airflow.hooks.base import BaseHook
-
-
 def trusted_refine_data():
+    from minio import Minio
+    import pandas as pd
+    from io import BytesIO
+    from airflow.hooks.base import BaseHook
+
     minio_connection = BaseHook.get_connection('minio')
     host = f"{minio_connection.host}:{minio_connection.port}"
     client = Minio(host, secure=False, access_key=minio_connection.login,
@@ -16,6 +15,14 @@ def trusted_refine_data():
     # Criar bucket TRUSTED se não existir
     if not client.bucket_exists(TRUSTED_BUCKET):
         client.make_bucket(TRUSTED_BUCKET)
+        print(f"Bucket '{TRUSTED_BUCKET}' criado com sucesso.")
+    else:
+        print(f"Bucket '{TRUSTED_BUCKET}' já existe. Limpando conteúdo...")
+        # Lista os objetos no bucket e exclui todos
+        objects = client.list_objects(TRUSTED_BUCKET, recursive=True)
+        for obj in objects:
+            client.remove_object(TRUSTED_BUCKET, obj.object_name)
+        print(f"Todo conteúdo do bucket '{TRUSTED_BUCKET}' foi deletado.")
 
     # Listar objetos no bucket STAGING
     objects = client.list_objects(STAGING_BUCKET)
@@ -63,7 +70,3 @@ def trusted_refine_data():
 
         except Exception as e:
             print(f"Erro ao processar o arquivo {obj.object_name}: {e}")
-
-
-# Exemplo de chamada da função
-trusted_refine_data()
