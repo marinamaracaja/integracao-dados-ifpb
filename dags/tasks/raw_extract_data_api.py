@@ -151,7 +151,7 @@ def raw_extract_aqicn_api():
     from airflow.hooks.base import BaseHook
     from minio import Minio
     
-    cidade = "vitoria"
+    cidade = "rio de janeiro"
     minio_connection = BaseHook.get_connection('minio')
     host = minio_connection.host + ':' + str(minio_connection.port)
     client = Minio(host, secure=False, access_key=minio_connection.login, secret_key=minio_connection.password)
