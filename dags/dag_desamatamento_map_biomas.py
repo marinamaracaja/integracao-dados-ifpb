@@ -13,7 +13,7 @@ os.system('pip install fastparquet')
 os.system('pip install requests')
 
 with DAG(
-    'dag_qualidade_ar',
+    'dag_desamatamento_map_biomas',
     start_date=datetime(2024, 10, 20),
     schedule_interval='0 8 * * *',
     catchup=False,

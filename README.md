@@ -1,6 +1,6 @@
 # integracao-dados-ifpb
 
-Repositório destinado ao projeto que investiga a correlação entre dados de qualidade do ar do AQICN e do MapBiomas para estudo de caso na disciplina de Integração de Dados do Mestrado PPGTI - IFPB
+Repositório destinado ao projeto que analisa os dados do desmatamento do MapBiomas para estudo de caso na disciplina de Integração de Dados do Mestrado PPGTI - IFPB
 
 ## Ferramentas utilizadas:
 
@@ -26,7 +26,7 @@ Repositório destinado ao projeto que investiga a correlação entre dados de qu
   ![connections](images/connections_airflow.png)
   ![connections](images/connections_airflow_minio.png)
 
-- Ligar dag "dag_qualidade_ar"
+- Ligar dag "dag_desmatamento_map_biomas"
 - Acompanhar logs de execução
 
 ## Estrutura do datalake:
