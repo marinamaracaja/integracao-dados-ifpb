@@ -3,7 +3,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 import os
 
-from tasks.raw_extract_data_api import processar_planilha_mapbiomas
+from tasks.raw_extract_data_api import processar_planilha_mapbiomas, raw_extract_mapbiomas_api
 from tasks.stg_transform_data import stg_transform_data
 from tasks.trusted_refine_data import trusted_refine_data
 from tasks.application_view_data import application_view_data
@@ -28,6 +28,13 @@ with DAG(
         execution_timeout=timedelta(minutes=15)
     )
 
+    # Operador para extrair dados da API Mapbiomas
+    extract_mapbiomas_api = PythonOperator(
+        task_id='extract_mapbiomas_api',
+        python_callable=raw_extract_mapbiomas_api,
+        execution_timeout=timedelta(minutes=10)
+    )
+
     # Operador para transformar dados
     transform_data = PythonOperator(
         task_id='transform_data',
@@ -50,4 +57,4 @@ with DAG(
     )
 
     # Definindo as dependências das tarefas
-    process_planilha >> transform_data >> refine_data >> view_data
+    [process_planilha,extract_mapbiomas_api] >> transform_data >> refine_data >> view_data

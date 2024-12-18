@@ -5,8 +5,8 @@ from airflow.hooks.base import BaseHook
 
 def application_view_data():
     """
-    Processa o arquivo combinado na camada TRUSTED, remove colunas específicas e
-    salva no bucket APPLICATION nos formatos CSV comprimido (gzip) e Parquet com compressão.
+    Converte arquivos Parquet específicos da camada TRUSTED para CSV comprimido (gzip)
+    e salva no bucket APPLICATION.
     """
     try:
         print("[INFO] Conectando ao MinIO...")
@@ -28,62 +28,38 @@ def application_view_data():
             client.make_bucket(APPLICATION_BUCKET)
             print(f"[INFO] Bucket '{APPLICATION_BUCKET}' criado com sucesso.")
         else:
-            print(f"[INFO] Bucket '{APPLICATION_BUCKET}' já existe. Limpando conteúdo...")
-            objects = client.list_objects(APPLICATION_BUCKET, recursive=True)
-            for obj in objects:
-                client.remove_object(APPLICATION_BUCKET, obj.object_name)
-            print(f"[INFO] Todo conteúdo do bucket '{APPLICATION_BUCKET}' foi deletado.")
+            print(f"[INFO] Bucket '{APPLICATION_BUCKET}' já existe.")
 
-        # Carregar o arquivo combinado da camada TRUSTED
-        objects = list(client.list_objects(TRUSTED_BUCKET))
-        if not objects:
-            print("[WARNING] Nenhum arquivo encontrado na camada TRUSTED.")
-            return
+        # Lista os arquivos específicos para processar
+        files_to_process = ["mapbiomas_combined_trusted.parquet", "other_data_combined_trusted.parquet"]
 
-        # Procura o arquivo combinado Parquet
-        for obj in objects:
-            if obj.object_name.endswith("combined_data_trusted.parquet"):
-                print(f"[INFO] Processando o arquivo {obj.object_name}...")
-                response = client.get_object(TRUSTED_BUCKET, obj.object_name)
-                combined_df = pd.read_parquet(BytesIO(response.read()))
+        for file_name in files_to_process:
+            try:
+                print(f"[INFO] Processando arquivo: {file_name}...")
+                # Baixa o arquivo Parquet
+                response = client.get_object(TRUSTED_BUCKET, file_name)
+                df = pd.read_parquet(BytesIO(response.read()))
 
-                # Remover colunas específicas
-                columns_to_remove = ['country', 'municipality - state', 'feature_id', 'geocode']
-                combined_df = combined_df.drop(columns=[col for col in columns_to_remove if col in combined_df.columns])
+                # Converte para CSV comprimido (gzip)
+                gzip_buffer = BytesIO()
+                df.to_csv(gzip_buffer, index=False, compression="gzip")
+                gzip_buffer.seek(0)
 
-                # Salvar como CSV comprimido (gzip)
-                print("[INFO] Salvando como CSV comprimido (gzip)...")
-                csv_buffer = BytesIO()
-                combined_df.to_csv(csv_buffer, index=False, compression='gzip')
-                csv_buffer.seek(0)
+                # Gera o nome do arquivo GZIP
+                gzip_file_name = file_name.replace(".parquet", ".csv.gz")
 
+                # Salva no MinIO
                 client.put_object(
                     APPLICATION_BUCKET,
-                    "processed_data.csv.gz",
-                    csv_buffer,
-                    length=csv_buffer.getbuffer().nbytes,
+                    gzip_file_name,
+                    gzip_buffer,
+                    length=gzip_buffer.getbuffer().nbytes,
                     content_type="application/gzip"
                 )
-                print("[SUCCESS] Arquivo 'processed_data.csv.gz' salvo com sucesso no bucket 'application'.")
+                print(f"[SUCCESS] Arquivo '{gzip_file_name}' salvo com sucesso no bucket '{APPLICATION_BUCKET}'.")
 
-                # Salvar como Parquet com compressão
-                print("[INFO] Salvando como Parquet comprimido...")
-                parquet_buffer = BytesIO()
-                combined_df.to_parquet(parquet_buffer, index=False, compression='snappy')
-                parquet_buffer.seek(0)
-
-                client.put_object(
-                    APPLICATION_BUCKET,
-                    "processed_data.parquet",
-                    parquet_buffer,
-                    length=parquet_buffer.getbuffer().nbytes,
-                    content_type="application/octet-stream"
-                )
-                print("[SUCCESS] Arquivo 'processed_data.parquet' salvo com sucesso no bucket 'application'.")
-
-                return
-
-        print("[WARNING] Arquivo combinado 'combined_data_trusted.parquet' não encontrado na camada TRUSTED.")
+            except Exception as e:
+                print(f"[ERROR] Erro ao processar o arquivo {file_name}: {e}")
 
     except Exception as e:
         print(f"[ERROR] Erro geral: {e}")
